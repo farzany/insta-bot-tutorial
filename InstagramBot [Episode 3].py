@@ -274,7 +274,7 @@ class InstagramBot:
 		self.driver.find_element_by_xpath('//*[@id="react-root"]/section/main/article/div[1]/div/div/div[1]/div[1]').click()
 
 		for i in range(amount):
-			self.Wait(10,12)
+			self.Wait(40,45)
 			name = self.driver.find_element_by_xpath('/html/body/div[5]/div[2]/div/article/header/div[2]/div[1]/div[1]/span/a').text
 			# Liking the post
 			if liketag:
