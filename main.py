@@ -1,0 +1,482 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+import random
+import numpy
+
+
+class InstagramAutomation:
+
+
+
+    def __init__(self, username, password):
+        self.girildi = False
+        self.username = username
+        self.password = password
+        self.ana_url = "https://www.instagram.com"
+        self.takipcisayac = 0
+        self.takipsayac = 0
+        self.TakipEdilen = []
+        self.TakipEtmeyenler = []
+        self.TakipEtmeList = []
+        self.korumalıList = []
+        self.yorumlistesi = []
+        self.takipciler = []
+        self.TakipEdilenlerList = []
+        self.DosyaAc()
+        self.Sec()
+
+
+
+
+
+    def Sec(self):
+
+        if not self.girildi:
+            self.Giris()
+            self.Bilgi()
+        print(".................")
+        choice = input("[1] Takipcileri Takip Et\n[2] Takip Edilenleri Çıkar\n[3] Herkesi Takipten Çıkar\n[4] Etiket Seçenekleri\n[5] Geri Takip Etmeyenleri takipten Çıkar\n[6] Takipçilerin listesini oluştur\n[7] takip Edilenlerin Listesini Oluştur\nİslem:\t")
+        if choice == "1":
+            self.TakipcileriTakipEt()
+            self.Sec()
+        elif choice == "2":
+            self.TakipedilenleriCikar()
+            self.Sec()
+        elif choice == "3":
+            self.HerkesiTakiptenCik()
+            self.Sec()
+        elif choice == "4":
+            self.EtiketSec()
+            self.Sec()
+        elif choice == "5":
+            self.TakipEtmeyenleriTakiptenCik()
+            self.Sec()
+        elif choice == "6":
+            self.getirTakipciler()
+            self.Sec()
+        elif choice == "7":
+            self.TakipEdilenBilgi()
+            self.Sec()
+        elif choice == "q":
+            self.driver.close()
+            return
+    def Bilgi(self):
+        self.KullanıcıyaGit(self.username)
+        self.driver.implicitly_wait(30)
+        self.Bekle(3,4)
+        temp = self.driver.find_element(By.CSS_SELECTOR,"li._aa_5:nth-child(2) > a:nth-child(1) > div:nth-child(1)").text
+        self.driver.implicitly_wait(10)
+        print(temp)
+
+        self.takipcisayac = self.intyap(temp)
+
+        temp = self.driver.find_element(By.CSS_SELECTOR,
+                                        "li._aa_5:nth-child(3) > a:nth-child(1) > div:nth-child(1) > span:nth-child(1)").text
+        print("{} Takip edilen".format(temp))
+        self.takipsayac = self.intyap(temp)
+
+        self.VeriOku()
+
+
+    def intyap(self, text):
+
+        if "BIN" in text:
+            return int(float((text.replace("BIN","").replace(",",""))) * 1000)
+        elif "M" in text:
+
+            return  int(float((text.replace("M takipçi","").replace(",",""))) * 1000000)
+        elif "takipçi" in text:
+            return int(float(text.replace(" takipçi","")))
+
+        else:
+            return float(text.replace(",",""))
+
+    def Bekle(self, min, max):
+
+        time.sleep(random.choice(numpy.arange(min, max, 0.1)))
+
+    def KullanıcıyaGit(self, user):
+
+        self.driver.get("{}/{}/".format(self.ana_url, user))
+        self.Bekle(1, 2)
+
+    def KullanıcıyıTakiptenCik(self, user):
+
+
+        self.KullanıcıyaGit(user)
+        self.driver.implicitly_wait(20)
+
+        div = self.driver.find_element(By.XPATH,"/html/body/div[1]/div/div[1]/div/div[1]/div/div/div[1]/div[1]/section/main/div/header/section/div[1]")
+        button = div.find_elements(By.TAG_NAME,"button")
+        if (button and button[0].text != "Takip Et"):
+            if (len(button) > 2):
+                button[1].click()
+            else:
+                button[0].click()
+            self.Bekle(1, 1.5)
+            self.driver.find_element(By.XPATH,"/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div/div[3]/button[1]").click()
+
+    def DosyaAc(self):
+
+        temp = open("[YeniTakipEdildi][{}]".format(self.username), "a+")
+        temp.close
+        temp = open("[TakipEtme][{}]".format(self.username), "a+")
+        temp.close
+        temp = open("[korumalıList][{}]".format(self.username), "a+")
+        temp.close
+        temp = open("[Yorumlar][{}]".format(self.username), "a+")
+        temp.close
+        temp = open("[takipciler][{}]".format(self.username), "a+")
+        temp.close
+        temp = open("[TakipEdilenlerList][{}]".format(self.username), "a+")
+        temp.close
+        temp = open("[TakipEtmeyenler][{}]".format(self.username), "a+")
+        temp.close
+
+    def VeriOku(self):
+
+        self.Bekle(1, 1.5)
+        self.TakipEdilen = []
+        self.TakipEtmeList = []
+        self.korumalıList = []
+        self.takipciler = []
+        self.TakipEdilenlerList = []
+        with open("[YeniTakipEdildi][{}]".format(self.username), "r+") as flist:
+            lines = flist.readlines()
+            for line in lines:
+                self.TakipEdilen.append(line.strip())
+        with open("[TakipEtme][{}]".format(self.username), "r+") as flist:
+            lines = flist.readlines()
+            for line in lines:
+                self.TakipEtmeList.append(line.strip())
+        with open("[korumalıList][{}]".format(self.username), "r+") as flist:
+            lines = flist.readlines()
+            for line in lines:
+                self.korumalıList.append(line.strip())
+        with open("[Yorumlar][{}]".format(self.username), "r+") as flist:
+            lines = flist.readlines()
+            for line in lines:
+                self.yorumlistesi.append(line.strip())
+        with open("[takipciler][{}]".format(self.username), "r+") as flist:
+            lines = flist.readlines()
+            for line in lines:
+                self.takipciler.append(line.strip())
+        with open("[TakipEdilenlerList][{}]".format(self.username), "r+") as flist:
+            lines = flist.readlines()
+            for line in lines:
+                self.TakipEdilenlerList.append(line.strip())
+        with open("[TakipEtmeyenler][{}]".format(self.username), "r+") as flist:
+            lines = flist.readlines()
+            for line in lines:
+                self.TakipEdilenlerList.append(line.strip())
+    def EkleTakipEdilen(self, name):
+
+        with open("[YeniTakipEdildi][{}]".format(self.username), "a+") as flist:
+            temp = name.strip() + "\n"
+            flist.write(temp)
+        self.VeriOku()
+
+    def EkleTakipEtmeList(self, name):
+
+        with open("[TakipEtme][{}]".format(self.username), "a+") as flist:
+            temp = name.strip() + "\n"
+            flist.write(temp)
+        self.VeriOku()
+
+    def SilTakipEdilen(self, name):
+
+        with open("[YeniTakipEdildi][{}]".format(self.username), "r") as flist:
+            lines = flist.readlines()
+        with open("[YeniTakipEdildi][{}]".format(self.username), "w") as flist:
+            for line in lines:
+                if line.strip() != name:
+                    flist.write(line)
+        self.VeriOku()
+
+    def Ekletakipciler(self, name):
+
+        with open("[takipciler][{}]".format(self.username), "a+") as flist:
+            temp = name.strip() + "\n"
+            flist.write(temp)
+        self.VeriOku()
+    def EkleTakipEdilenlerList(self, name):
+
+        with open("[TakipEdilenlerList][{}]".format(self.username), "a+") as flist:
+            temp = name.strip() + "\n"
+            flist.write(temp)
+        self.VeriOku()
+
+    def EkleTakipEtmeyenler(self, name):
+
+        with open("[TakipEtmeyenler][{}]".format(self.username), "a+") as flist:
+            temp = name.strip() + "\n"
+            flist.write(temp)
+        self.VeriOku()
+    def SilTakipEtmeyenler(self, name):
+
+        with open("[TakipEtmeyenler][{}]".format(self.username), "r") as flist:
+            lines = flist.readlines()
+        with open("[TakipEtmeyenler][{}]".format(self.username), "w") as flist:
+            for line in lines:
+                if line.strip() != name:
+                    flist.write(line)
+        self.VeriOku()
+    def SilTakipEdilenlerList(self, name):
+
+        with open("[TakipEdilenlerList][{}]".format(self.username), "r") as flist:
+            lines = flist.readlines()
+        with open("[TakipEdilenlerList][{}]".format(self.username), "w") as flist:
+            for line in lines:
+                if line.strip() != name:
+                    flist.write(line)
+        self.VeriOku()
+
+
+
+
+
+    def Giris(self):
+        self.driver = webdriver.Firefox()
+        print("Giris Yapılıyor: {}".format(self.username))
+        self.driver.get("{}/accounts/login".format(self.ana_url))
+        self.Bekle(2, 3)
+        self.driver.find_element(By.NAME, "username").send_keys(self.username)
+        self.Bekle(1, 2)
+        self.driver.find_element(By.NAME, "password").send_keys(self.password)
+        self.Bekle(1, 2)
+        self.driver.find_elements(By.XPATH,"//*[@id='loginForm']/div/div[3]/button/div")[0].click()
+        print("Giriş Yapıldı: {}".format(self.username))
+        self.girildi = True
+        self.Bekle(5, 6)
+
+    def getirTakipciler(self):
+        self.VeriOku()
+        self.KullanıcıyaGit(self.username)
+        self.driver.implicitly_wait(15)
+        i = 1
+        print(self.takipcisayac)
+        self.driver.find_element(By.XPATH,"/html/body/div[1]/div/div[1]/div/div[1]/div/div/div[1]/div[1]/section/main/div/header/section/ul/li[2]/a/div").click()
+        self.driver.implicitly_wait(5)
+        follower = self.driver.find_element(By.CLASS_NAME, "_aae-").find_elements(By.TAG_NAME, "li")
+        while i <= self.takipcisayac:
+            self.Bekle(7, 8)
+            currentUser = self.driver.find_element(By.CLASS_NAME, "_aae-").find_element(By.XPATH,
+                "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div/div[2]/ul/div/li[{}]".format(i))
+            name = currentUser.find_element(By.CSS_SELECTOR, ".notranslate").text
+            self.Ekletakipciler(name)
+            print("[{}] {}  Takipçiler Listesine Eklendi ".format(i,name))
+            WebDriverWait(self.driver, 15).until(EC.NoSuchElementException)
+            if temp.is_displayed():
+                self.driver.execute_script("arguments[0].scrollIntoView(true)",temp)
+                i += 1
+
+
+
+
+    def TakipEdilenBilgi(self):
+        self.VeriOku()
+        self.KullanıcıyaGit(self.username)
+        l = 1
+        self.driver.implicitly_wait(15)
+        self.driver.find_element(By.XPATH,"/html/body/div[1]/div/div[1]/div/div[1]/div/div/div[1]/div[1]/section/main/div/header/section/ul/li[3]/a/div").click()
+        self.Bekle(3,4)
+        follower = self.driver.find_element(By.CSS_SELECTOR, "._aae-")
+        while l <= self.takipsayac:
+            self.Bekle(1, 2)
+            temp = follower.find_elements(By.TAG_NAME,"li")
+            for i in temp:
+
+                kay = follower.find_element(By.CSS_SELECTOR,"._aae- > li:nth-child({})".format(l))
+
+                name = i.find_element(By.TAG_NAME,"a").get_attribute("href")
+                self.EkleTakipEdilenlerList(name)
+                print("[{}] {} Takip Edilen Listesine Eklendi ".format(l, name))
+                l += 1
+            WebDriverWait(self.driver, 10).until(EC.presence_of_element_located(By.CSS_SELECTOR,"._aae- > li:nth-child({})".format(l)))
+            self.driver.execute_script("arguments[0].scrollIntoView()",kay )
+
+
+
+
+
+
+
+
+    def TakipcileriTakipEt(self):
+        self.VeriOku()
+        user = input("Account username:\t")
+        self.KullanıcıyaGit(user)
+        self.driver.implicitly_wait(20)
+        temp = self.driver.find_element(By.CSS_SELECTOR,"li._aa_5:nth-child(2) > a:nth-child(1) > div:nth-child(1)").text
+        numoftakipciler = self.intyap(temp)
+        amount = int(input("Kaç Kişi Takip Edilecek? (Az Olmalı {})\t".format(temp)))
+        while amount > numoftakipciler:
+            amount = int(input("Kaç Kişi Takip Edilecek? (Az Olmalı {})\t".format(temp)))
+        self.driver.find_element(By.XPATH,"/html/body/div[1]/div/div[1]/div/div[1]/div/div/div[1]/div[1]/section/main/div/header/section/ul/li[2]/a/div").click()
+        self.driver.implicitly_wait(5)
+        follower = self.driver.find_element(By.CLASS_NAME,"_aae-").find_elements(By.TAG_NAME,"li")
+        i, k = 1, 1
+        while (k <= amount):
+            self.Bekle(1, 1.5)
+            currentUser = self.driver.find_element(By.CLASS_NAME,"_aae-").find_element(By.XPATH,
+                                        "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div/div[2]/ul/div/li[{}]".format(i))
+            button = currentUser.find_elements(By.TAG_NAME,"button")
+            name = currentUser.find_element(By.CSS_SELECTOR,".notranslate").text
+
+            if (button) and (button[0].text == "Takip Et") and (name not in self.TakipEtmeList):
+                self.Bekle(30, 35)
+                button[0].click()
+                self.EkleTakipEdilen(name)
+                self.EkleTakipEtmeList(name)
+                print("[{}] {} Yeni Takip Edildi {}".format(k, self.username, name))
+                k += 1
+            self.Bekle(1, 1.5)
+            self.driver.execute_script("arguments[0].scrollIntoView()", currentUser)
+            i += 1
+
+    def TakipEtmeyenleriTakiptenCik(self):
+        self.VeriOku()
+        for i in self.TakipEdilenlerList:
+            if i not in self.takipciler:
+                if i not in self.TakipEtmeyenler:
+
+                    self.TakipEtmeyenler.append(i)
+        nontakipciler = len(self.TakipEtmeyenler)
+
+        print("Bütün  Geri Takip Etmeyenler Listelendi  {} ".format(len(self.TakipEtmeyenler)))
+
+
+        print(nontakipciler)
+        amount = int(input("Geri takip Etmeyen Kaç Kişiyi Çıkarmak İstersiniz ?(Geri Takip Etmeyenler {})\t".format(nontakipciler)))
+        while amount > self.takipsayac:
+            amount = int(input("Geri takip Etmeyen Kaç Kişiyi Çıkarmak İstersiniz ? (Geri Takip Etmeyenler {})\t".format(nontakipciler)))
+
+        for i in range(amount):
+            user = self.TakipEtmeyenler[i]
+            self.Bekle(10,15)
+            self.KullanıcıyıTakiptenCik(user)
+            self.SilTakipEtmeyenler(user)
+            self.SilTakipEdilenlerList(user)
+            print("[{}] {} Takipten Çıkıldı {}".format(i + 1, self.username, user))
+
+
+
+
+
+
+    def TakipedilenleriCikar(self):
+        self.VeriOku()
+        YeniTakipEdildisayi = len(self.TakipEdilen)
+        amount = int(input("Kaç Kişi Takipten Çıkarılacak (Takip Edilen {})\t".format(YeniTakipEdildisayi)))
+        while amount > YeniTakipEdildisayi:
+            amount = int(input("Kaç Kişi Takipten Çıkarılacak (Takip Edilen  {})\t".format(YeniTakipEdildisayi)))
+
+        for i in range(amount):
+            user = self.TakipEdilen[0]
+            self.Bekle(30, 35)
+            self.KullanıcıyıTakiptenCik(user)
+            self.SilTakipEdilen(user)
+            print("[{}] {} Takipten Çıkıldı {}".format(i + 1, self.username, user))
+        self.VeriOku()
+
+
+    def HerkesiTakiptenCik(self):
+
+        self.Bilgi()
+        amount = int(input("Kaç Kişi Takipten Çıkarılacak? (Takip Ediliyor {})\t".format(self.takipsayac)))
+        while amount > self.takipsayac:
+            amount = int(input("Kaç Kişi Takipten Çıkarılacak? (Takip Ediliyor  {})\t".format(self.takipsayac)))
+
+        self.driver.find_element(By.XPATH,"/html/body/div[1]/div/div[1]/div/div[1]/div/div/div[1]/div[1]/section/main/div/header/section/ul/li[3]").click()
+        i, k = 1, 1
+        while (k <= amount):
+            self.driver.implicitly_wait(5)
+            currentUser = self.driver.find_element(By.CLASS_NAME, "_aae-").find_element(By.XPATH,
+                "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div/div[3]/ul/div/li[{}]".format(i))
+
+            button = currentUser.find_elements(By.TAG_NAME, "button")
+            name = currentUser.find_element(By.CSS_SELECTOR, ".notranslate").text
+
+            if (button) and (button[0].text == "Takiptesin") and (name not in self.korumalıList):
+                self.Bekle(30, 35)
+                button[0].click()
+                if name in self.TakipEdilen:
+                    self.SilTakipEdilen(name)
+                if name not in self.TakipEtmeList:
+                    self.EkleTakipEtmeList(name)
+                self.Bekle(1, 2)
+
+                self.driver.find_element(By.XPATH,
+                        "/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[2]/div/div/div[1]/div/div[2]/div/div/div/div/div/div/div/div[3]/button[1]").click()
+                print("[{}] {} Takipten Çıkıldı {}".format(k, self.username, name))
+                k += 1
+            self.Bekle(1, 1.5)
+
+            self.driver.execute_script("arguments[0].scrollIntoView();", currentUser)
+            i += 1
+
+
+
+    def EtiketSec(self):
+
+        tag = input("Tag:\t")
+        amount = int(input("Kaç Gönderi Seçilecek:\t"))
+        liketag, commenttag, followtag = False, False, False
+        if "e" in input("Gönderiyi Beğenmek ister misiniz?(e/h):\t").lower():
+            liketag = True
+        if "e" in input("Yorum Atmak ister misiniz? (e/h):\t").lower():
+            commenttag = True
+        if "e" in input("gönderi Sahibini takip etmek ister misiniz? (e/h):\t").lower():
+            followtag = True
+
+        self.driver.get("{}/explore/tags/{}".format(self.ana_url, tag))
+        self.Bekle(1, 2)
+
+        self.driver.find_element(By.XPATH,
+            '/html/body/div[1]/div/div[1]/div/div[1]/div/div/div[1]/div[1]/section/main/article/div[1]/div/div/div[1]/div[1]').click()
+
+        for i in range(amount):
+            self.Bekle(10,15)
+            name = self.driver.find_element(By.XPATH,
+                '/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[3]/div/div/div/div/div[2]/div/article/div/div[2]/div/div/div[1]/div/header/div[2]/div[1]/div[1]/div/span/a').text
+
+            if liketag:
+                self.Bekle(20, 25)
+                likebutton = self.driver.find_element(By.XPATH,
+                    '/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[3]/div/div/div/div/div[2]/div/article/div/div[2]/div/div/div[2]/section[1]/span[1]/button')
+                liketext = likebutton.find_element(By.XPATH,".//*[name()='svg']").get_attribute('aria-label')
+                if liketext == "Beğen":
+                    likebutton.click()
+                    print("[{}]  {} Gönderisi Beğenildi".format(i + 1, name))
+
+            if commenttag:
+                self.Bekle(30, 35)
+                temp = self.driver.find_element(By.XPATH,
+                    '/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[3]/div/div/div/div/div[2]/div/article/div/div[2]/div/div/div[2]/section[3]/div/form')
+                temp.find_element(By.XPATH,"/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[3]/div/div/div/div/div[2]/div/article/div/div[2]/div/div/div[2]/section[3]/div/form/textarea").click()
+                temp.find_element(By.XPATH,"/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[3]/div/div/div/div/div[2]/div/article/div/div[2]/div/div/div[2]/section[3]/div/form/textarea").send_keys(random.choice(self.yorumlistesi))
+                self.Bekle(1, 2)
+                self.driver.find_element(By.XPATH,
+                    '/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[3]/div/div/div/div/div[2]/div/article/div/div[2]/div/div/div[2]/section[3]/div/form/button').click()
+                print("[{}]  {} için Yorum Yapıldı ".format(i + 1, name))
+
+            if followtag:
+                self.Bekle(1, 2)
+                temp = self.driver.find_element(By.XPATH,
+                    '/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[3]/div/div/div/div/div[2]/div/article/div/div[2]/div/div/div[1]/div/header/div[2]/div[1]/div[2]/button')
+                if (temp.text ==  "Takip Et") and (name not in self.TakipEtmeList):
+                    temp.click()
+                    self.EkleTakipEdilen(name)
+                    self.EkleTakipEtmeList(name)
+                    print("[{}]  {} Takip Edildi".format(i + 1, name))
+
+            if i == 0:
+                self.driver.find_element(By.XPATH,'/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[3]/div/div/div/div/div[1]/div/div/div/button').click()
+            else:
+                self.driver.find_element(By.XPATH,'/html/body/div[1]/div/div[1]/div/div[2]/div/div/div[1]/div/div[3]/div/div/div/div/div[1]/div/div/div[2]/button').click()
+
+
+TestRuns = InstagramAutomation("*********", "************")
